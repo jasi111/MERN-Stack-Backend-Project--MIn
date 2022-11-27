@@ -1,0 +1,9 @@
+npm init -y
+npm i express mongoose jsonwebtoken bcryptjs
+
+to hide files - create .gitignore file and write node-modules/
+
+Create a folder utils > create file authRoles.js and create roles
+Create a folder models > create file user.schema.js
+create a folder config > create file index.js and .env
+
