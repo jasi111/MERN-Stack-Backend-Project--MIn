@@ -83,6 +83,21 @@ getJwtToken: function(){
     )
     // payload, privatekey and the otions
     // payload is the _id
+},
+
+gernerateForgotPasswordToken: function(){
+const forgotPasswordToken = crypto.randomBytes(20).toString ('hex');
+
+// step 1 - save to DB
+this.forgotPasswordToken = crypto
+.createHash("sha256")
+.update(forgotToken)
+.digest("hex")
+
+this.forgotPasswordExpiry =Date.now() + 20 * 60 * 1000// step 2-return values to user
+
+//step 1 -
+return forgotToken
 }
 }
 
