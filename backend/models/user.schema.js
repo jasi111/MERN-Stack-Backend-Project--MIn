@@ -25,6 +25,9 @@ const userSchema = mongoose.Schema(
       required: [true, "password is required"],
       minLength: [8, "password must be atleast than8 charactes"],
       select: false,
+      // this select is for querying mongodb not for creating document - 
+      // means no querying-is allowed for password thats why it we pept select:false
+      // but the password is available in document but not able to do query
       // by making thi select flase this field will not come in datatbase field
       // so the password will be stored in.....by how?
     },
