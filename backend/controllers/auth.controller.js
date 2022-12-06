@@ -44,9 +44,75 @@ user.password = undefined
 // making the password undefined so that the user cannot see the password
 
 res.cookie("token",token,cookieOptions)
-res.status(200).json{
+res.status(200).json({
     success:true,
     token,
     user
-}
 })
+})
+
+
+/*
+@LOGIN
+@route htttp://localhost:4000/api/auth/login
+@description User signIn controller for loging user
+@parametersemai,password
+@return User Object
+*/
+export const login = asyncHandler(async (req,res)=>{
+    const {email,password}=req.body
+
+    if (!emai|| !password){
+        throw new CustomError ('Please fill all fields', 400)
+    }
+
+    User.findOne({email}).select("password")
+
+    if(!user){
+        throw new CustomError("Invvalid credentials",400)
+    }
+
+    const isPasswordMatched = await user.comparePassword(password)
+   if (isPasswordMatched){const toekn = user.getJwtToken()
+    user.password = undefined
+res.cookie("token",token,cookieOptions)
+return res.status(200).json({
+    success:true,
+    token,
+    user
+})
+   }
+
+   throw new CustomError('Invalid credentials -pass',400)
+   
+    // mongoose select 
+})
+
+/*
+@LOGOUT
+@route htttp://localhost:4000/api/auth/logout
+@description User logout by clearing cookies
+@parameters
+@return success message
+*/
+export const logout = asyncHandler(async(_req,res) =>{
+    //_req underscore is used means not using req
+    //  or we can use 
+    // res.clearCookie()
+    res.cookie("token",null, {
+        expires:new Date(Date.now()),
+        httpOnly:true
+    })
+    res.status(200).json({
+        success:true,
+        message:"Looged Out"
+    })
+})
+
+/*
+@FORGOUT 
+@route htttp://localhost:4000/api/auth/logout
+@description User logout by clearing cookies
+@parameters
+@return success message
+*/
