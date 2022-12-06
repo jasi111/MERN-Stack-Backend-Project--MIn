@@ -40,6 +40,13 @@ const token = user.getJwtToken()
 // call this function as (), if didnt called () then the return value for token will be received
 console.log(user)
 user.password = undefined
+//while returning back we are making password undefined
 // making the password undefined so that the user cannot see the password
 
+res.cookie("token",token,cookieOptions)
+res.status(200).json{
+    success:true,
+    token,
+    user
+}
 })
