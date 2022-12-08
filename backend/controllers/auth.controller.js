@@ -1,6 +1,8 @@
 import User from "../models/user.schema.js"
 import asyncHandler from "../services/asyncHandler"
 import CustomError from "../utils/customError"
+import mailHelper from "../utils/mailHelper"
+import crypto from "crypto"
 
 export const cookieOptions ={
     expires:new Date(Date.now() +3 * 24 * 60 * 60 * 1000),
@@ -66,7 +68,7 @@ export const login = asyncHandler(async (req,res)=>{
         throw new CustomError ('Please fill all fields', 400)
     }
 
-    User.findOne({email}).select("password")
+    const user = await User.findOne({email}).select("+password")
 
     if(!user){
         throw new CustomError("Invvalid credentials",400)
@@ -87,6 +89,7 @@ return res.status(200).json({
    
     // mongoose select 
 })
+
 
 /*
 @LOGOUT
@@ -110,9 +113,115 @@ export const logout = asyncHandler(async(_req,res) =>{
 })
 
 /*
-@FORGOUT 
-@route htttp://localhost:4000/api/auth/logout
-@description User logout by clearing cookies
-@parameters
-@return success message
+@FORGOT 
+@route htttp://localhost:4000/api/auth/password/forgot
+@description User will submit email and we will geberate a token
+@parameters - email
+@return - success message "email sent"
 */
+export const forgotPassword = asyncHandler(async(req,res) => {
+    const {email} = req.body
+   const user = await User.findOne({email})
+//assignment - check input - email null or email validation
+   if (!user){
+    throw new CustomeError("User not found",404)
+   }
+   const resetToken = user.generateForgotPasswordToken()
+
+   await user.save({validateBeforeSave:false})
+   const resetUrl = `${req.protocol}://${req.get("host")}/api/auth/password/reset/${resetToken}`
+ const text = `Your password rest url is 
+ \n\n ${resetUrl}\n\n`
+  try {
+    await mailHelper({
+        email:user.email,
+        subject:"Password reset email for website",
+        text:text,
+    })
+    res.status(200).json({
+        succes:true,
+        message:"Email send to ${user.email}"
+    })
+  } catch (error) {
+    //roll back - clear fields and save
+    user.forgotPasswordToken = undefined
+    user.forgotPasswordExpiry = undefined
+
+    await user.save({validateBeforeSave:false})
+    throw new CustomError(err.message || "Email sent failer",500)
+  }
+})
+
+/*
+@RESET PASSWORD
+@route htttp://localhost:4000/api/auth/password/reset/:resetPasswordToken
+@description User will be able to reset paswsword based on url token
+@parameters - token from url, password and confirmpass
+@return - User Object
+*/
+
+export const resetPassword = asynHandler(async(re,res)=>{
+
+    const {token:resetToken} = req.params
+    const {password, confirmPassword} = req.body
+
+   const resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex')
+
+    // User.findOne({email:email)}
+    const user = await User.findOne({
+        forgotPasswordToken:resetPasswordToken,
+        forgotPasswordExpiry:{$gt: Date.now()}
+        //$gt: Date.now means date graeter than now date
+        });
+
+        if (!user){
+            throw new CustomError('password token is invalid or expired',400)
+        }
+
+        if (password !== confirmPassword){
+            throw new CustomError('password and conf password dowsnot not match',400)
+                    }
+                    user.password=password
+                    user.forgotPasswordToken = undefined
+                    user.forgotPasswordExpiry = undefined
+
+                    await user.save()
+
+                    //create token and send as response
+                    const token = user.getJwtToken()
+                    user.password = undefined
+
+                    //helper method for cookie  can be added
+                    res.cookie("token", token , cookieOptions)
+                    res.status(200).json({
+                        success:true,
+                        user
+                    })
+})
+
+// Asssignment - Create a controller for change password
+
+
+/*
+@GET_PROFILE 
+@REQUEST_TYPE GET
+@route htttp://localhost:4000/api/auth/profile
+@description check for token and populate req.user
+@parameters 
+@return - User Object
+*/
+
+export const getProfile = asyncHandler(async (re,res)=>{
+    const {user} =req
+    if(!user) {
+        throw new CustomError("User not found", 404)
+    
+    }
+    res.status(200).json({
+        suucess:true,
+        user
+    })
+})
