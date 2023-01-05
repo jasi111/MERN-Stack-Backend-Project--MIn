@@ -5,5 +5,15 @@ to hide files - create .gitignore file and write node-modules/
 
 Create a folder utils > create file authRoles.js and create roles
 Create a folder models > create file user.schema.js
+created services folder - async handler
 create a folder config > create file index.js and .env
+
+1.created schema/models inside models folder
+2.created Utitlities like authRoles, worked custom error classes which helpful in customising error
+3.created controllers 
+   -auth controllers
+   -collection controllers
+
+Created s3.config.js
+added values for s3 in .env and config folder index.js added s3 values inside a variable called config(const config)created service
 
