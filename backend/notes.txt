@@ -17,3 +17,10 @@ create a folder config > create file index.js and .env
 Created s3.config.js
 added values for s3 in .env and config folder index.js added s3 values inside a variable called config(const config)created service
 
+- installed npm i formidable
+-created product.controller.js
+-created coupon,controller.js
+
+npm i razorpay
+created a file in config folder > razorpay.config.js
+
